@@ -54,6 +54,60 @@ export add_components!, remove_components!, exchange_components!
 # Export event/hook functions
 export on_entity_created!, on_entity_destroyed!, on_component_added!, on_component_removed!
 
+################################################### ESSENTIAL MACRO ####################################################
+
+"""
+    @mustimplement(function_signature)
+
+Macro to mark interface functions that must be implemented by concrete types.
+Generates an error message with the function name and argument types when called
+without a concrete implementation.
+
+# Example
+```julia
+@mustimplement function add_component!(ecs::AbstractECS, e::AbstractEntity, data...)
+    # This will be replaced with an informative error
+end
+```
+"""
+macro mustimplement(ex)
+    if ex.head != :function && ex.head != :(=)
+        error("@mustimplement can only be applied to function definitions")
+    end
+    
+    # Extract function name and arguments
+    func_def = ex.args[1]
+    func_name = func_def.args[1]
+    
+    # Build type signature for error message
+    types = []
+    if length(func_def.args) > 1
+        for arg in func_def.args[2:end]
+            if isa(arg, Expr) && arg.head == :(::)
+                # Typed argument
+                push!(types, arg.args[2])
+            elseif isa(arg, Expr) && arg.head == :parameters
+                # Keyword arguments - skip for now
+                continue
+            elseif isa(arg, Expr) && arg.head == :(...)
+                # Varargs
+                push!(types, "...")
+            else
+                # Untyped argument
+                push!(types, :Any)
+            end
+        end
+    end
+    
+    types_str = join(types, ", ")
+    error_msg = "Function `$func_name($types_str)` is not implemented for these argument types. " *
+                "You must provide a concrete implementation for your ECS type."
+    
+    # Return the function definition with error body
+    return esc(quote
+        $func_def = error($error_msg)
+    end)
+end
 ################################################## COMPONENT FUNCTIONS #################################################
 
 """
@@ -69,7 +123,7 @@ Add one or more components to an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-add_component!(ecs::AbstractECS, e::AbstractEntity, data...) = nothing
+@mustimplement add_component!(ecs::AbstractECS, e::AbstractEntity, data...)
 
 """
     has_component(ecs::AbstractECS, e::AbstractEntity, comp)
@@ -84,7 +138,7 @@ Check if an entity has a specific component.
 # Returns
 `true` if the entity has the component, `false` otherwise.
 """
-has_component(ecs::AbstractECS, e::AbstractEntity, comp) = false
+@mustimplement has_component(ecs::AbstractECS, e::AbstractEntity, comp)
 
 """
     remove_component!(ecs::AbstractECS, e::AbstractEntity, data...)
@@ -99,7 +153,7 @@ Remove one or more components from an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-remove_component!(ecs::AbstractECS, e::AbstractEntity, data...) = nothing
+@mustimplement remove_component!(ecs::AbstractECS, e::AbstractEntity, data...)
 
 """
     get_component(ecs::AbstractECS, e::AbstractEntity, comp)
@@ -114,7 +168,7 @@ Retrieve a specific component from an entity.
 # Returns
 The component data if it exists, or nothing/error (implementation-specific).
 """
-get_component(ecs::AbstractECS, e::AbstractEntity, comp) = nothing
+@mustimplement get_component(ecs::AbstractECS, e::AbstractEntity, comp)
 
 """
     set_component!(ecs::AbstractECS, e::AbstractEntity, comp)
@@ -129,7 +183,7 @@ Set or update a component on an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-set_component!(ecs::AbstractECS, e::AbstractEntity, comp) = nothing
+@mustimplement set_component!(ecs::AbstractECS, e::AbstractEntity, comp)
 
 """
     get_components(ecs::AbstractECS, e::AbstractEntity)
@@ -143,7 +197,7 @@ Get all components attached to an entity.
 # Returns
 Collection of all components on the entity (implementation-specific).
 """
-get_components(ecs::AbstractECS, e::AbstractEntity) = nothing
+@mustimplement get_components(ecs::AbstractECS, e::AbstractEntity)
 
 ################################################## ENTITY FUNCTIONS ####################################################
 
@@ -159,7 +213,7 @@ Create a new entity in the ECS.
 # Returns
 The newly created entity (implementation-specific).
 """
-new_entity!(ecs::AbstractECS, data...) = nothing
+new_entity!(ecs::AbstractECS, data...)
 
 """
     new_entities!(ecs::AbstractECS, n, data...)
@@ -174,7 +228,7 @@ Create multiple new entities in the ECS.
 # Returns
 Collection of newly created entities (implementation-specific).
 """
-new_entities!(ecs::AbstractECS, n, data...) = nothing
+@mustimplement new_entities!(ecs::AbstractECS, n, data...)
 
 """
     remove_entity!(ecs::AbstractECS, e::AbstractEntity)
@@ -188,7 +242,7 @@ Remove an entity and all its components from the ECS.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-remove_entity!(ecs::AbstractECS, e::AbstractEntity) = nothing
+@mustimplement remove_entity!(ecs::AbstractECS, e::AbstractEntity)
 
 """
     remove_entities!(ecs::AbstractECS, entities)
@@ -202,7 +256,7 @@ Remove multiple entities and all their components from the ECS.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-remove_entities!(ecs::AbstractECS, entities) = nothing
+@mustimplement remove_entities!(ecs::AbstractECS, entities)
 
 """
     get_entities(ecs::AbstractECS)
@@ -215,7 +269,7 @@ Get all active entities in the ECS.
 # Returns
 Collection of all active entities (implementation-specific).
 """
-get_entities(ecs::AbstractECS) = nothing
+@mustimplement get_entities(ecs::AbstractECS)
 
 """
     entity_count(ecs::AbstractECS)
@@ -228,7 +282,7 @@ Get the number of active entities in the ECS.
 # Returns
 The number of active entities.
 """
-entity_count(ecs::AbstractECS) = 0
+@mustimplement entity_count(ecs::AbstractECS)
 
 """
     is_alive(ecs::AbstractECS, e::AbstractEntity)
@@ -242,7 +296,7 @@ Check if an entity is still valid/alive in the ECS.
 # Returns
 `true` if the entity exists and is valid, `false` otherwise.
 """
-is_alive(ecs::AbstractECS, e::AbstractEntity) = true
+@mustimplement is_alive(ecs::AbstractECS, e::AbstractEntity)
 
 """
     is_zero(ecs::AbstractECS, e::AbstractEntity)
@@ -256,7 +310,7 @@ Check if an entity represents a null/zero entity.
 # Returns
 `true` if the entity is a null/zero entity, `false` otherwise.
 """
-is_zero(ecs::AbstractECS, e::AbstractEntity) = true
+@mustimplement is_zero(ecs::AbstractECS, e::AbstractEntity)
 
 ################################################## RESOURCE FUNCTIONS ##################################################
 
@@ -272,7 +326,7 @@ Check if a resource exists in the ECS.
 # Returns
 `true` if the resource exists, `false` otherwise (implementation-specific).
 """
-has_resource(ecs::AbstractECS, r) = nothing
+@mustimplement has_resource(ecs::AbstractECS, r)
 
 """
     get_resource(ecs::AbstractECS, r)
@@ -288,7 +342,7 @@ Resources are global data accessible throughout the ECS system.
 # Returns
 The resource data if it exists (implementation-specific).
 """
-get_resource(ecs::AbstractECS, r) = nothing
+@mustimplement get_resource(ecs::AbstractECS, r)
 
 """
     add_resource!(ecs::AbstractECS, r)
@@ -302,7 +356,7 @@ Add a new resource to the ECS.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-add_resource!(ecs::AbstractECS, r) = nothing
+@mustimplement add_resource!(ecs::AbstractECS, r)
 
 """
     set_resource!(ecs::AbstractECS, r)
@@ -316,7 +370,7 @@ Set or update a resource in the ECS.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-set_resource!(ecs::AbstractECS, r) = nothing
+@mustimplement set_resource!(ecs::AbstractECS, r)
 
 """
     remove_resource!(ecs::AbstractECS, r)
@@ -330,7 +384,7 @@ Remove a resource from the ECS.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-remove_resource!(ecs::AbstractECS, r) = nothing
+@mustimplement remove_resource!(ecs::AbstractECS, r)
 
 ################################################## QUERY FUNCTIONS #####################################################
 
@@ -358,7 +412,7 @@ query(ecs, Position, Velocity)
 query(ecs, Health; without=(Dead,))
 ```
 """
-query(ecs::AbstractECS, comps...; with=(), without=(), exclusive=false) = nothing
+@mustimplement query(ecs::AbstractECS, comps...; with=(), without=(), exclusive=false)
 
 ################################################## BATCH OPERATIONS ####################################################
 
@@ -375,7 +429,7 @@ Add the same component to multiple entities.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-add_components!(ecs::AbstractECS, entities, comp) = nothing
+@mustimplement add_components!(ecs::AbstractECS, entities, comp)
 
 """
     remove_components!(ecs::AbstractECS, entities, comp)
@@ -390,7 +444,7 @@ Remove the same component from multiple entities.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-remove_components!(ecs::AbstractECS, entities, comp) = nothing
+@mustimplement remove_components!(ecs::AbstractECS, entities, comp)
 
 """
     exchange_components!(ecs::AbstractECS, e::AbstractEntity; add=(), remove=())
@@ -406,7 +460,7 @@ Add and remove the same component from an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-exchange_components!(ecs::AbstractECS, e::AbstractEntity; add=(), remove=())
+@mustimplement exchange_components!(ecs::AbstractECS, e::AbstractEntity; add=(), remove=())
 
 ################################################## SYSTEM FUNCTIONS ####################################################
 
@@ -421,7 +475,7 @@ Reset the ECS to its initial state, removing all entities and resources.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-reset!(ecs::AbstractECS) = nothing
+@mustimplement reset!(ecs::AbstractECS)
 
 """
     register_system!(ecs::AbstractECS, system)
@@ -437,7 +491,7 @@ Systems contain logic that operates on entities matching specific component quer
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-register_system!(ecs::AbstractECS, system) = nothing
+@mustimplement register_system!(ecs::AbstractECS, system)
 
 """
     unregister_system!(ecs::AbstractECS, system)
@@ -451,7 +505,7 @@ Unregister a system from the ECS.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-unregister_system!(ecs::AbstractECS, system) = nothing
+@mustimplement unregister_system!(ecs::AbstractECS, system)
 
 """
     run_systems!(ecs::AbstractECS)
@@ -464,7 +518,7 @@ Execute all registered systems in order.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-run_systems!(ecs::AbstractECS) = nothing
+@mustimplement run_systems!(ecs::AbstractECS)
 
 """
     get_systems(ecs::AbstractECS)
@@ -477,7 +531,7 @@ Get all registered systems.
 # Returns
 Collection of all registered systems (implementation-specific).
 """
-get_systems(ecs::AbstractECS) = nothing
+@mustimplement get_systems(ecs::AbstractECS)
 
 ################################################## EVENT/HOOK FUNCTIONS ################################################
 
@@ -493,7 +547,7 @@ Register a callback to be called when an entity is created.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-on_entity_created!(callback::Function, ecs::AbstractECS) = nothing
+@mustimplement on_entity_created!(callback::Function, ecs::AbstractECS)
 
 """
     on_entity_destroyed!(callback::Function, ecs::AbstractECS)
@@ -507,7 +561,7 @@ Register a callback to be called when an entity is destroyed.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-on_entity_destroyed!(callback::Function, ecs::AbstractECS) = nothing
+@mustimplement on_entity_destroyed!(callback::Function, ecs::AbstractECS)
 
 """
     on_component_added!(callback::Function, ecs::AbstractECS)
@@ -521,7 +575,7 @@ Register a callback to be called when a component is added to an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-on_component_added!(callback::Function, ecs::AbstractECS) = nothing
+@mustimplement on_component_added!(callback::Function, ecs::AbstractECS)
 
 """
     on_component_removed!(callback::Function, ecs::AbstractECS)
@@ -535,6 +589,7 @@ Register a callback to be called when a component is removed from an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-on_component_removed!(callback::Function, ecs::AbstractECS) = nothing
+@mustimplement on_component_removed!(callback::Function, ecs::AbstractECS)
 
 end # module
+
