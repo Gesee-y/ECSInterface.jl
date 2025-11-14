@@ -213,7 +213,7 @@ Create a new entity in the ECS.
 # Returns
 The newly created entity (implementation-specific).
 """
-new_entity!(ecs::AbstractECS, data...)
+@mustimplement new_entity!(ecs::AbstractECS, data...)
 
 """
     new_entities!(ecs::AbstractECS, n, data...)
