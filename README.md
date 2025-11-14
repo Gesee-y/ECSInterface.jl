@@ -12,8 +12,8 @@ AbstractECS, AbstractEntity, AbstractQuery
 
 ### component functions
 ```
-add_component!, remove_component!, has_component, get_component, set_component!
-get_components
+add_components!, remove_components!, has_components, get_components, set_components!
+get_all_components
 ```
 
 ### entity functions
