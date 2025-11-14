@@ -1,6 +1,6 @@
-##########################################################################################################################
-###################################################### ECS INTERFACE #####################################################
-##########################################################################################################################
+#######################################################################################################################
+###################################################### ECS PLUGIN #####################################################
+#######################################################################################################################
 
 module ECSInterface
 
@@ -21,12 +21,38 @@ All entity implementations should subtype this abstract type.
 abstract type AbstractEntity end
 
 """
-Abstract types for queries in an Entity Component System.
+Abstract base type for Queries in an Entity Component System.
 
-Queries are iterators for entities and components matching a certain request.
+Queries are iterators of entites matching a certain request.
 All queries implementation should subtype this abstract type.
 """
 abstract type AbstractQuery end
+
+# Export abstract types
+export AbstractECS, AbstractEntity, AbstractSystem
+
+# Export component functions
+export add_component!, remove_component!, has_component, get_component, set_component!
+export get_components
+
+# Export entity functions
+export new_entity!, new_entities!, remove_entity!, remove_entities!
+export is_alive, is_zero, get_entities, entity_count
+
+# Export resource functions
+export has_resource, get_resource, add_resource!, set_resource!, remove_resource!
+
+# Export query functions
+export query
+
+# Export system functions
+export reset!, register_system!, unregister_system!, run_systems!, get_systems
+
+# Export batch operations
+export add_components!, remove_components!, exchange_components!
+
+# Export event/hook functions
+export on_entity_created!, on_entity_destroyed!, on_component_added!, on_component_removed!
 
 ################################################## COMPONENT FUNCTIONS #################################################
 
@@ -105,6 +131,20 @@ Nothing by default. Implementations may return relevant data.
 """
 set_component!(ecs::AbstractECS, e::AbstractEntity, comp) = nothing
 
+"""
+    get_components(ecs::AbstractECS, e::AbstractEntity)
+
+Get all components attached to an entity.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `e::AbstractEntity`: The entity to query
+
+# Returns
+Collection of all components on the entity (implementation-specific).
+"""
+get_components(ecs::AbstractECS, e::AbstractEntity) = nothing
+
 ################################################## ENTITY FUNCTIONS ####################################################
 
 """
@@ -149,6 +189,46 @@ Remove an entity and all its components from the ECS.
 Nothing by default. Implementations may return relevant data.
 """
 remove_entity!(ecs::AbstractECS, e::AbstractEntity) = nothing
+
+"""
+    remove_entities!(ecs::AbstractECS, entities)
+
+Remove multiple entities and all their components from the ECS.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `entities`: Collection of entities to remove
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+remove_entities!(ecs::AbstractECS, entities) = nothing
+
+"""
+    get_entities(ecs::AbstractECS)
+
+Get all active entities in the ECS.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+
+# Returns
+Collection of all active entities (implementation-specific).
+"""
+get_entities(ecs::AbstractECS) = nothing
+
+"""
+    entity_count(ecs::AbstractECS)
+
+Get the number of active entities in the ECS.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+
+# Returns
+The number of active entities.
+"""
+entity_count(ecs::AbstractECS) = 0
 
 """
     is_alive(ecs::AbstractECS, e::AbstractEntity)
@@ -280,6 +360,54 @@ query(ecs, Health; without=(Dead,))
 """
 query(ecs::AbstractECS, comps...; with=(), without=(), exclusive=false) = nothing
 
+################################################## BATCH OPERATIONS ####################################################
+
+"""
+    add_components!(ecs::AbstractECS, entities, comp)
+
+Add the same component to multiple entities.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `entities`: Collection of entities to modify
+- `comp`: The component data to add to all entities
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+add_components!(ecs::AbstractECS, entities, comp) = nothing
+
+"""
+    remove_components!(ecs::AbstractECS, entities, comp)
+
+Remove the same component from multiple entities.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `entities`: Collection of entities to modify
+- `comp`: The component type or identifier to remove from all entities
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+remove_components!(ecs::AbstractECS, entities, comp) = nothing
+
+"""
+    exchange_components!(ecs::AbstractECS, e::AbstractEntity; add=(), remove=())
+
+Add and remove the same component from an entity.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `e`: The entity to modify
+- `add`: The components to add
+- `remove`: The components to remove
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+exchange_components!(ecs::AbstractECS, e::AbstractEntity; add=(), remove=())
+
 ################################################## SYSTEM FUNCTIONS ####################################################
 
 """
@@ -294,5 +422,119 @@ Reset the ECS to its initial state, removing all entities and resources.
 Nothing by default. Implementations may return relevant data.
 """
 reset!(ecs::AbstractECS) = nothing
+
+"""
+    register_system!(ecs::AbstractECS, system)
+
+Register a system to be executed by the ECS.
+
+Systems contain logic that operates on entities matching specific component queries.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `system`: The system to register
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+register_system!(ecs::AbstractECS, system) = nothing
+
+"""
+    unregister_system!(ecs::AbstractECS, system)
+
+Unregister a system from the ECS.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `system`: The system to unregister
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+unregister_system!(ecs::AbstractECS, system) = nothing
+
+"""
+    run_systems!(ecs::AbstractECS)
+
+Execute all registered systems in order.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+run_systems!(ecs::AbstractECS) = nothing
+
+"""
+    get_systems(ecs::AbstractECS)
+
+Get all registered systems.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+
+# Returns
+Collection of all registered systems (implementation-specific).
+"""
+get_systems(ecs::AbstractECS) = nothing
+
+################################################## EVENT/HOOK FUNCTIONS ################################################
+
+"""
+    on_entity_created!(callback::Function, ecs::AbstractECS)
+
+Register a callback to be called when an entity is created.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `callback::Function`: Function to call with signature `callback(ecs, entity)`
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+on_entity_created!(callback::Function, ecs::AbstractECS) = nothing
+
+"""
+    on_entity_destroyed!(callback::Function, ecs::AbstractECS)
+
+Register a callback to be called when an entity is destroyed.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `callback::Function`: Function to call with signature `callback(ecs, entity)`
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+on_entity_destroyed!(callback::Function, ecs::AbstractECS) = nothing
+
+"""
+    on_component_added!(callback::Function, ecs::AbstractECS)
+
+Register a callback to be called when a component is added to an entity.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `callback::Function`: Function to call with signature `callback(ecs, entity, component)`
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+on_component_added!(callback::Function, ecs::AbstractECS) = nothing
+
+"""
+    on_component_removed!(callback::Function, ecs::AbstractECS)
+
+Register a callback to be called when a component is removed from an entity.
+
+# Arguments
+- `ecs::AbstractECS`: The ECS instance
+- `callback::Function`: Function to call with signature `callback(ecs, entity, component_type)`
+
+# Returns
+Nothing by default. Implementations may return relevant data.
+"""
+on_component_removed!(callback::Function, ecs::AbstractECS) = nothing
 
 end # module
