@@ -29,7 +29,7 @@ All queries implementation should subtype this abstract type.
 abstract type AbstractQuery end
 
 # Export abstract types
-export AbstractECS, AbstractEntity, AbstractSystem
+export AbstractECS, AbstractEntity, AbstractQuery
 
 # Export component functions
 export add_component!, remove_component!, has_component, get_component, set_component!
@@ -71,13 +71,13 @@ end
 ```
 """
 macro mustimplement(ex)
-    if ex.head != :function && ex.head != :(=)
+    if ex.head != :call
         error("@mustimplement can only be applied to function definitions")
     end
     
     # Extract function name and arguments
-    func_def = ex.args[1]
-    func_name = func_def.args[1]
+    func_def = ex
+    func_name = ex.args[1]
     
     # Build type signature for error message
     types = []
@@ -105,7 +105,7 @@ macro mustimplement(ex)
     
     # Return the function definition with error body
     return esc(quote
-        $func_def = error($error_msg)
+        $ex = error($error_msg)
     end)
 end
 ################################################## COMPONENT FUNCTIONS #################################################
