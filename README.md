@@ -13,7 +13,7 @@ AbstractECS, AbstractEntity, AbstractQuery
 ### component functions
 ```
 add_components!, remove_components!, has_components, get_components, set_components!
-get_all_components
+get_all_components, exchange_components!
 ```
 
 ### entity functions
@@ -35,11 +35,6 @@ query
 ### system functions
 ```
 reset!, register_system!, unregister_system!, run_systems!, get_systems
-```
-
-### batch operations
-```
-add_components!, remove_components!, exchange_components!
 ```
 
 ### event/hook functions

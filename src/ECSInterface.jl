@@ -49,7 +49,7 @@ export query
 export reset!, register_system!, unregister_system!, run_systems!, get_systems
 
 # Export batch operations
-export add_components!, remove_components!, exchange_components!
+export exchange_components!
 
 # Export event/hook functions
 export on_entity_created!, on_entity_destroyed!, on_component_added!, on_component_removed!
@@ -415,36 +415,6 @@ query(ecs, Health; without=(Dead,))
 @mustimplement query(ecs::AbstractECS, comps...; with=(), without=(), exclusive=false)
 
 ################################################## BATCH OPERATIONS ####################################################
-
-"""
-    add_components!(ecs::AbstractECS, entities, comp)
-
-Add the same component to multiple entities.
-
-# Arguments
-- `ecs::AbstractECS`: The ECS instance
-- `entities`: Collection of entities to modify
-- `comp`: The component data to add to all entities
-
-# Returns
-Nothing by default. Implementations may return relevant data.
-"""
-@mustimplement add_components!(ecs::AbstractECS, entities, comp)
-
-"""
-    remove_components!(ecs::AbstractECS, entities, comp)
-
-Remove the same component from multiple entities.
-
-# Arguments
-- `ecs::AbstractECS`: The ECS instance
-- `entities`: Collection of entities to modify
-- `comp`: The component type or identifier to remove from all entities
-
-# Returns
-Nothing by default. Implementations may return relevant data.
-"""
-@mustimplement remove_components!(ecs::AbstractECS, entities, comp)
 
 """
     exchange_components!(ecs::AbstractECS, e::AbstractEntity; add=(), remove=())
