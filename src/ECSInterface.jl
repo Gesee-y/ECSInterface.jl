@@ -32,8 +32,8 @@ abstract type AbstractQuery end
 export AbstractECS, AbstractEntity, AbstractQuery
 
 # Export component functions
-export add_component!, remove_component!, has_component, get_component, set_component!
-export get_components
+export add_components!, remove_components!, has_components, get_components, set_components!
+export get_all_components
 
 # Export entity functions
 export new_entity!, new_entities!, remove_entity!, remove_entities!
@@ -111,7 +111,7 @@ end
 ################################################## COMPONENT FUNCTIONS #################################################
 
 """
-    add_component!(ecs::AbstractECS, e::AbstractEntity, data...)
+    add_components!(ecs::AbstractECS, e::AbstractEntity, data...)
 
 Add one or more components to an entity.
 
@@ -123,10 +123,10 @@ Add one or more components to an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-@mustimplement add_component!(ecs::AbstractECS, e::AbstractEntity, data...)
+@mustimplement add_components!(ecs::AbstractECS, e::AbstractEntity, data...)
 
 """
-    has_component(ecs::AbstractECS, e::AbstractEntity, comp)
+    has_components(ecs::AbstractECS, e::AbstractEntity, comp)
 
 Check if an entity has a specific component.
 
@@ -138,10 +138,10 @@ Check if an entity has a specific component.
 # Returns
 `true` if the entity has the component, `false` otherwise.
 """
-@mustimplement has_component(ecs::AbstractECS, e::AbstractEntity, comp)
+@mustimplement has_components(ecs::AbstractECS, e::AbstractEntity, comp)
 
 """
-    remove_component!(ecs::AbstractECS, e::AbstractEntity, data...)
+    remove_components!(ecs::AbstractECS, e::AbstractEntity, data...)
 
 Remove one or more components from an entity.
 
@@ -153,10 +153,10 @@ Remove one or more components from an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-@mustimplement remove_component!(ecs::AbstractECS, e::AbstractEntity, data...)
+@mustimplement remove_components!(ecs::AbstractECS, e::AbstractEntity, data...)
 
 """
-    get_component(ecs::AbstractECS, e::AbstractEntity, comp)
+    get_components(ecs::AbstractECS, e::AbstractEntity, comp)
 
 Retrieve a specific component from an entity.
 
@@ -168,10 +168,10 @@ Retrieve a specific component from an entity.
 # Returns
 The component data if it exists, or nothing/error (implementation-specific).
 """
-@mustimplement get_component(ecs::AbstractECS, e::AbstractEntity, comp)
+@mustimplement get_components(ecs::AbstractECS, e::AbstractEntity, comp)
 
 """
-    set_component!(ecs::AbstractECS, e::AbstractEntity, comp)
+    set_components!(ecs::AbstractECS, e::AbstractEntity, comp)
 
 Set or update a component on an entity.
 
@@ -183,10 +183,10 @@ Set or update a component on an entity.
 # Returns
 Nothing by default. Implementations may return relevant data.
 """
-@mustimplement set_component!(ecs::AbstractECS, e::AbstractEntity, comp)
+@mustimplement set_components!(ecs::AbstractECS, e::AbstractEntity, comp)
 
 """
-    get_components(ecs::AbstractECS, e::AbstractEntity)
+    get_all_components(ecs::AbstractECS, e::AbstractEntity)
 
 Get all components attached to an entity.
 
@@ -197,7 +197,7 @@ Get all components attached to an entity.
 # Returns
 Collection of all components on the entity (implementation-specific).
 """
-@mustimplement get_components(ecs::AbstractECS, e::AbstractEntity)
+@mustimplement get_all_components(ecs::AbstractECS, e::AbstractEntity)
 
 ################################################## ENTITY FUNCTIONS ####################################################
 
@@ -592,4 +592,3 @@ Nothing by default. Implementations may return relevant data.
 @mustimplement on_component_removed!(callback::Function, ecs::AbstractECS)
 
 end # module
-
